@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 function generateRandonString (length) {
   let result           = '';
@@ -40,11 +42,14 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect('/urls');
+});
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   const templateVars = {urls:urlDatabase};
   delete urlDatabase[req.params.shortURL];
-  console.log(urlDatabase);
-  console.log(req.params.shortURL);
   res.redirect('/urls');
 });
 
@@ -58,8 +63,13 @@ app.post("/urls", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  console.log(`we have ${longURL} and  ${req.params.shortURL}`)
   res.redirect(longURL);
+});
+
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  console.log(req.body.username);
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
