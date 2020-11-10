@@ -40,6 +40,15 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const templateVars = {urls:urlDatabase};
+  delete urlDatabase[req.params.shortURL];
+  console.log(urlDatabase);
+  console.log(req.params.shortURL);
+  res.redirect('/urls');
+});
+
+
 app.post("/urls", (req, res) => {
   const shortURL = generateRandonString(6);
   urlDatabase[shortURL] = req.body.longURL;
