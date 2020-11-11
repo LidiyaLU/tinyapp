@@ -24,6 +24,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -80,6 +93,16 @@ app.post('/logout', (req, res) => {
 app.get('/register', (req, res) => {
   res.render('urls_register');
 });
+
+app.post('/register', (req, res) => {
+  const user_id = generateRandonString(6);
+  users.user_id = {id: user_id, email: req.body.email, password: req.body.password};
+
+  console.log(req.body);
+  console.log(users);
+  res.cookie("user_id", user_id);
+  res.send("OK!");
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
