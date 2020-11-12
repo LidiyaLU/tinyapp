@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
+const { fetchUser, authenticateUser } = require('./helpers')
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -42,9 +43,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req,res) => {
-  const user = users[req.cookies["user_id"]];
-  const templateVars = {urls:urlDatabase, email: user ? user.email : undefined };
-  res.render('urls_index', templateVars);
+  const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
+  const templateVars = {user: users[req.cookies["user_id"]], urls:urlDatabase, email: user['email']};
+  res.render("urls_index", templateVars);
 })
 
 app.get("/urls/new", (req, res) => {
@@ -83,6 +84,10 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.get("/login", (req,res) => {
+  res.render("urls_login");
+});
+
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
@@ -98,11 +103,30 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
+  const { email, password } = req.body;
   const user_id = generateRandonString(6);
+
+  if (!email) {
+    return res.status(400).send('Email is empty!')
+  }
+
+  if (!password) {
+    return res.status(400).send('Password is empty!')
+  }
+
+  for (let user in users) {
+    if (users[user].email === email) {
+      return res.status(404).send('<html><h4>User already exists</h4></html>');
+    }
+  }
+  
   users[user_id] = {id: user_id, email: req.body.email, password: req.body.password};
   res.cookie("user_id", user_id);
-  res.redirect('/urls');
-})
+  res.redirect("/urls");
+  
+});
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
