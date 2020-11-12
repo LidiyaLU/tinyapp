@@ -10,12 +10,11 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-
-
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {longURL : "http://www.lighthouselabs.ca", userID: "userRandomID"},
+  "9sm5xK": {longURL: "http://www.google.com", userID: "user2RandomID"}
 };
+
 
 const users = { 
   "userRandomID": {
@@ -78,24 +77,13 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 app.get("/login", (req,res) => {
   res.render("urls_login");
 });
-
-// function emailPasswordCheck(email, password) {
-//   let check = {check: false, user: ""};
-//   for (let user in users){
-//     if (users[user].email === email && users[user].password === password) {
-//       check.check = true;
-//       check.user = users[user];
-//     }
-//   };
-//   return check;  
-// }
 
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
