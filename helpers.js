@@ -19,4 +19,14 @@ function generateRandonString (length) {
   return result;
 }
 
-module.exports = { emailPasswordCheck, generateRandonString};
+const urlsForUser = function(id, db) {
+  let restrictedUrls = {};
+  for (let url in db) {
+    if (db[url].userID === id) {
+       restrictedUrls[url] = db[url];
+    }
+  }
+  return restrictedUrls;
+};
+
+module.exports = { emailPasswordCheck, generateRandonString, urlsForUser};

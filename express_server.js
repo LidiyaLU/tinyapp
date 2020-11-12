@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 const {emailPasswordCheck} = require('./helpers');
 const {generateRandonString} = require('./helpers');
+const {urlsForUser} = require('./helpers')
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -33,11 +34,17 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls", (req,res) => {
 
+
+app.get("/urls", (req,res) => {
   const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
-  const templateVars = {user: users[req.cookies["user_id"]], urls:urlDatabase};
-  res.render("urls_index", templateVars);
+  if (user) { 
+  const templateVars = {user: users[req.cookies["user_id"]], urls: urlsForUser(req.cookies["user_id"], urlDatabase)};
+  res.render("urls_index", templateVars); 
+  } else {
+    const templateVars = {user: users[req.cookies["user_id"]], urls: null};
+  res.render("urls_index", templateVars); 
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -58,22 +65,35 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect('/urls');
+  const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
+  if (user) {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login')
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const templateVars = {urls:urlDatabase};
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
+  if (user) {
+    const templateVars = {urls:urlDatabase};
+    delete urlDatabase[req.params.shortURL];
+  } else {
+    res.redirect('/login');
+  }
 });
 
 
 app.post("/urls", (req, res) => {
+  const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null; 
+  if (user) {
   const shortURL = generateRandonString(6);
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.cookies["user_id"]};
   res.redirect("/urls/" + shortURL);
-
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -93,7 +113,7 @@ app.post("/login", (req, res) => {
     res.cookie("user_id", result.user.id)
     res.redirect("/urls"); 
   } else {
-    res.status(403).send('Wrong credentials!');
+    res.status(403).send('<html><h4> Make sure that you enter right credentials or <a href="/register"> Register </a></h4></html>');
   };
 });
 
