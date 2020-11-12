@@ -3,7 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
-const { fetchUser, authenticateUser } = require('./helpers')
+const {emailPasswordCheck} = require('./helpers');
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -88,9 +88,27 @@ app.get("/login", (req,res) => {
   res.render("urls_login");
 });
 
+// function emailPasswordCheck(email, password) {
+//   let check = {check: false, user: ""};
+//   for (let user in users){
+//     if (users[user].email === email && users[user].password === password) {
+//       check.check = true;
+//       check.user = users[user];
+//     }
+//   };
+//   return check;  
+// }
+
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.username);
-  res.redirect("/urls");
+  const {email, password} = req.body;
+
+  const result = emailPasswordCheck(email, password, users);
+  if (result.check) {
+    res.cookie("user_id", result.user.id)
+    res.redirect("/urls"); 
+  } else {
+    res.status(403).send('Wrong credentials!');
+  };
 });
 
 app.post('/logout', (req, res) => {
