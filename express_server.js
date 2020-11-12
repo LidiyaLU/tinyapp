@@ -4,20 +4,12 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 const {emailPasswordCheck} = require('./helpers');
+const {generateRandonString} = require('./helpers');
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-function generateRandonString (length) {
-  let result           = '';
-  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for (let i = 0; i < length; i++ ) {
-     result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
 
 
 const urlDatabase = {
@@ -43,15 +35,21 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req,res) => {
+
   const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
   const templateVars = {user: users[req.cookies["user_id"]], urls:urlDatabase};
   res.render("urls_index", templateVars);
-})
+});
 
 app.get("/urls/new", (req, res) => {
   const user = users[req.cookies["user_id"]] ? users[req.cookies["user_id"]] : null;
   const templateVars = { user: users[req.cookies["user_id"]] }; 
-  res.render("urls_new", templateVars);
+  if (user) {
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect('/login');
+  }
+  
 });
 
 app.get("/urls/:shortURL", (req, res) => {
