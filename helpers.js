@@ -1,7 +1,10 @@
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 function emailPasswordCheck(email, password, db) {
   let check = {check: false, user: ""};
   for (let user in db){
-    if (db[user].email === email && db[user].password === password) {
+    if (db[user].email === email && bcrypt.compareSync(password, db[user].password)){
       check.check = true;
       check.user = db[user];
     }
